@@ -19,3 +19,15 @@ Scenario: Search for dogs
     And I should see "Fido" in the results
     But I should not see "Kitty" in the results
     And I should not see "Leo" in the results
+
+Scenario: Create a Pet
+    Given I am on the "Home Page"
+    When I set the "Name" to "Happy"
+    And I set the "Category" to "Hippo"
+    And I set the "Birthday" to "2022-06-16"
+    And I click the "Create" button
+    Then I should see the message "Success"
+    When I click the "Clear" button
+    And I click the "Search" button
+    Then I should see the message "Success"
+    And I should see "Happy" in the results
