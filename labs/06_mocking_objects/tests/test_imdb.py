@@ -24,3 +24,45 @@ class TestIMDbDatabase(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
+    @patch('test_imdb.IMDb.search_titles')
+    def test_search_by_title(self, imdb_mock):
+        imdb_mock.return_value = IMDB_DATA["GOOD_SEARCH"]
+        imdb = IMDb("k_12345678")
+        results = imdb.search_titles("Bambi")
+        self.assertIsNotNone(results)
+        self.assertIsNone(results["errorMessage"])
+        self.assertIsNotNone(results["results"])
+        self.assertEqual(results["results"][0]["id"], "tt1275666")
+
+    @patch('models.imdb.requests.get')
+    def test_search_with_no_results(self, imdb_mack):
+        imdb_mack.return_value = Mock(status_code=404)
+        imdb = IMDb("k_12345678")
+        results = imdb.search_titles("Bambi")
+        self.assertEqual(results,{})
+
+    @patch('models.imdb.requests.get')
+    def test_search_by_title_failed(self, imdb_mock):
+        imdb_mock.return_value = Mock(
+            spec=Response,
+            status_code=200,
+            json=Mock(return_value=IMDB_DATA["INVALID_API"])
+        )
+        imdb = IMDb("bad-key")
+        results = imdb.search_titles("Bambi")
+        self.assertIsNotNone(results)
+        self.assertEqual(results["errorMessage", "Invalid API"])
+
+    @patch('models.imdb.requests.get')
+    def test_movie_ratings(self, imdb_mock):
+        imdb_mock.return_value = Mock(
+            spec=Response,
+            status_code=200,
+            json=Mock(return_value=IMDB_DATA["GOOD_RATING"])
+        )
+        imdb = IMDb("K_12345678")
+        results = imdb.movie_ratings("tt1375666")
+        self.assertIsNotNone(results)
+        self.assertEqual(results["title"], "Bambi")
+        self.assertEqual(results["filmAffinity"], 3)
+        self.assertEqual(results["rottenTomatoes"], 5)
